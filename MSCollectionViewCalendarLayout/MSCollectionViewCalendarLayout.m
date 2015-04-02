@@ -38,7 +38,7 @@ NSString * const MSCollectionElementKindCurrentTimeHorizontalGridline = @"MSColl
 NSString * const MSCollectionElementKindVerticalGridline = @"MSCollectionElementKindVerticalGridline";
 NSString * const MSCollectionElementKindHorizontalGridline = @"MSCollectionElementKindHorizontalGridline";
 
-NSUInteger const MSCollectionMinOverlayZ = 1000.0; // Allows for 900 items in a section without z overlap issues
+NSUInteger const MSCollectionMinOverlayZ = 1000.0; // Allows for 900 items in a sectio without z overlap issues
 NSUInteger const MSCollectionMinCellZ = 100.0;  // Allows for 100 items in a section's background
 NSUInteger const MSCollectionMinBackgroundZ = 0.0;
 
@@ -205,12 +205,12 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
 {
     [super prepareLayout];
     
-    if (self.needsToPopulateAttributesForAllSections) {
+    if (self.needsToPopulateAttributesForAllSections && self.sectionLayoutType == MSSectionLayoutTypeVerticalTile) {
         [self prepareSectionLayoutForSections:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, self.collectionView.numberOfSections)]];
         self.needsToPopulateAttributesForAllSections = NO;
     }
-    
-    BOOL needsToPopulateAllAttribtues = (self.allAttributes.count == 0);
+
+    BOOL needsToPopulateAllAttribtues = YES;
     if (needsToPopulateAllAttribtues) {
         [self.allAttributes addObjectsFromArray:[self.dayColumnHeaderAttributes allValues]];
         [self.allAttributes addObjectsFromArray:[self.dayColumnHeaderBackgroundAttributes allValues]];
@@ -242,8 +242,9 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
         return;
     }
     
-    BOOL needsToPopulateItemAttributes = (self.itemAttributes.count == 0);
-    BOOL needsToPopulateVerticalGridlineAttributes = (self.verticalGridlineAttributes.count == 0);
+    
+    BOOL needsToPopulateItemAttributes = YES;
+    BOOL needsToPopulateVerticalGridlineAttributes = YES;
     
     NSInteger earliestHour = [self earliestHour];
     NSInteger latestHour = [self latestHour];
@@ -304,7 +305,7 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
         currentTimeHorizontalGridlineAttributes.frame = CGRectMake(currentTimeHorizontalGridlineMinX, currentTimeHorizontalGridlineMinY, currentTimehorizontalGridlineWidth, self.currentTimeHorizontalGridlineHeight);
         currentTimeHorizontalGridlineAttributes.zIndex = [self zIndexForElementKind:MSCollectionElementKindCurrentTimeHorizontalGridline];
     }
-
+    
     // Day Column Header
     CGFloat dayColumnHeaderMinY = fmaxf(self.collectionView.contentOffset.y, 0.0);
     BOOL dayColumnHeaderFloating = ((dayColumnHeaderMinY != 0) || self.displayHeaderBackgroundAtOrigin);
@@ -330,10 +331,9 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
         timeRowHeaderIndex++;
     }
     
+    
     [sectionIndexes enumerateIndexesUsingBlock:^(NSUInteger section, BOOL *stop) {
-        
         CGFloat sectionMinX = (calendarContentMinX + (sectionWidth * section));
-        
         // Day Column Header
         UICollectionViewLayoutAttributes *dayColumnHeaderAttributes = [self layoutAttributesForSupplementaryViewAtIndexPath:[NSIndexPath indexPathForItem:0 inSection:section] ofKind:MSCollectionElementKindDayColumnHeader withItemCache:self.dayColumnHeaderAttributes];
         dayColumnHeaderAttributes.frame = CGRectMake(sectionMinX, dayColumnHeaderMinY, self.sectionWidth, self.dayColumnHeaderHeight);
@@ -381,6 +381,7 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
             [self adjustItemsForOverlap:sectionItemAttributes inSection:section sectionMinX:sectionMinX];
         }
     }];
+    
     
     // Horizontal Gridlines
     NSUInteger horizontalGridlineIndex = 0;
