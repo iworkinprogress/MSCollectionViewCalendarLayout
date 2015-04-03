@@ -243,8 +243,8 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
     }
     
     
-    BOOL needsToPopulateItemAttributes = YES;
-    BOOL needsToPopulateVerticalGridlineAttributes = YES;
+    BOOL needsToPopulateItemAttributes = (self.itemAttributes.count == 0);
+    BOOL needsToPopulateVerticalGridlineAttributes = (self.verticalGridlineAttributes.count == 0);
     
     NSInteger earliestHour = [self earliestHour];
     NSInteger latestHour = [self latestHour];
@@ -346,11 +346,11 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
             CGFloat horizontalGridlineMinX = nearbyintf(sectionMinX - self.sectionMargin.left - (self.verticalGridlineWidth / 2.0));
             horizontalGridlineAttributes.frame = CGRectMake(horizontalGridlineMinX, calendarGridMinY, self.verticalGridlineWidth, sectionHeight);
         }
-        
-        if (needsToPopulateItemAttributes) {
-            [self populateHorizontalItemAttributes];
-        }
     }];
+    
+    if (needsToPopulateItemAttributes) {
+        [self populateHorizontalItemAttributes];
+    }
     
     
     // Horizontal Gridlines
@@ -585,7 +585,6 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
                     // Stacking (lower items stack above higher items, since the title is at the top)
                     divisionAttributes.zIndex = sectionZ;
                     sectionZ ++;
-                    
                     divisionAttributes.frame = divisionAttributesFrame;
                     [dividedAttributes addObject:divisionAttributes];
                     [adjustedAttributes addObject:divisionAttributes];
