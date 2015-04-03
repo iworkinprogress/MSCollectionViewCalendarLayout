@@ -205,12 +205,12 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
 {
     [super prepareLayout];
     
-    if (self.needsToPopulateAttributesForAllSections && self.sectionLayoutType == MSSectionLayoutTypeVerticalTile) {
+    if (self.needsToPopulateAttributesForAllSections) {
         [self prepareSectionLayoutForSections:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, self.collectionView.numberOfSections)]];
         self.needsToPopulateAttributesForAllSections = NO;
     }
     
-    BOOL needsToPopulateAllAttribtues = YES;
+    BOOL needsToPopulateAllAttribtues = (self.allAttributes.count == 0);
     if (needsToPopulateAllAttribtues) {
         [self.allAttributes addObjectsFromArray:[self.dayColumnHeaderAttributes allValues]];
         [self.allAttributes addObjectsFromArray:[self.dayColumnHeaderBackgroundAttributes allValues]];
@@ -806,10 +806,9 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
     [self.cachedStartTimeDateComponents removeAllObjects];
     [self.cachedEndTimeDateComponents removeAllObjects];
     
-    // remove old item attributes
-    [self.allAttributes removeObjectsInArray:[self.itemAttributes allValues]];
-    
     if(shouldRemoveExistingItemAttributes) {
+        // remove old item attributes
+        [self.allAttributes removeObjectsInArray:[self.itemAttributes allValues]];
         [self.itemAttributes removeAllObjects];
     }
     
@@ -817,6 +816,12 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
     [self.collectionView reloadData];
     // update position of items
     [self populateHorizontalItemAttributes];
+    
+    if(shouldRemoveExistingItemAttributes) {
+        // add itemAttributes back to allAttributes
+        [self.allAttributes addObjectsFromArray:[self.itemAttributes allValues]];
+    }
+    
     // force layout of items
     [self invalidateLayout];
 }
