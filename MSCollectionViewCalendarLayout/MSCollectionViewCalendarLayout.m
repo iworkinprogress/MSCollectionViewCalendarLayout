@@ -348,37 +348,7 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
         }
         
         if (needsToPopulateItemAttributes) {
-            // Items
-            NSMutableArray *sectionItemAttributes = [NSMutableArray new];
-            for (NSInteger item = 0; item < [self.collectionView numberOfItemsInSection:section]; item++) {
-                
-                NSIndexPath *itemIndexPath = [NSIndexPath indexPathForItem:item inSection:section];
-                UICollectionViewLayoutAttributes *itemAttributes = [self layoutAttributesForCellAtIndexPath:itemIndexPath withItemCache:self.itemAttributes];
-                [sectionItemAttributes addObject:itemAttributes];
-                
-                NSDateComponents *itemStartTime = [self startTimeForIndexPath:itemIndexPath];
-                NSDateComponents *itemEndTime = [self endTimeForIndexPath:itemIndexPath];
-                
-                CGFloat startHourY = ((itemStartTime.hour - earliestHour) * self.hourHeight);
-                CGFloat startMinuteY = (itemStartTime.minute * self.minuteHeight);
-                
-                CGFloat endHourY;
-                if (itemEndTime.day != itemStartTime.day) {
-                    endHourY = (([[NSCalendar currentCalendar] maximumRangeOfUnit:NSHourCalendarUnit].length - earliestHour) * self.hourHeight) + (itemEndTime.hour * self.hourHeight);
-                } else {
-                    endHourY = ((itemEndTime.hour - earliestHour) * self.hourHeight);
-                }
-                CGFloat endMinuteY = (itemEndTime.minute * self.minuteHeight);
-                
-                CGFloat itemMinY = nearbyintf(startHourY + startMinuteY + calendarContentMinY + self.cellMargin.top);
-                CGFloat itemMaxY = nearbyintf(endHourY + endMinuteY + calendarContentMinY - self.cellMargin.bottom);
-                CGFloat itemMinX = nearbyintf(sectionMinX + self.cellMargin.left);
-                CGFloat itemMaxX = nearbyintf(itemMinX + (self.sectionWidth - (self.cellMargin.left + self.cellMargin.right)));
-                itemAttributes.frame = CGRectMake(itemMinX, itemMinY, (itemMaxX - itemMinX), (itemMaxY - itemMinY));
-                
-                itemAttributes.zIndex = [self zIndexForElementKind:nil];
-            }
-            [self adjustItemsForOverlap:sectionItemAttributes inSection:section sectionMinX:sectionMinX];
+             [self populateHorizontalItemAttributes];
         }
     }];
     
@@ -831,6 +801,72 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
     [self.timeRowHeaderBackgroundAttributes removeAllObjects];
     [self.allAttributes removeAllObjects];
 }
+
+-(void) refreshItemLayoutAttributesAndClearItemAttributes:(BOOL)shouldCleanItemAttributes
+{
+    [self.cachedStartTimeDateComponents removeAllObjects];
+    [self.cachedEndTimeDateComponents removeAllObjects];
+    
+    // remove old item attributes
+    [self.allAttributes removeObjectsInArray:[self.itemAttributes allValues]];
+    
+    if(shouldCleanItemAttributes) {
+        [self.itemAttributes removeAllObjects];
+    }
+    
+    [self populateHorizontalItemAttributes];
+    
+    // add iteMAttributes back to allAttributes
+    [self.allAttributes addObjectsFromArray:[self.itemAttributes allValues]];
+}
+
+-(void) populateHorizontalItemAttributes
+{
+    // add new item attributes
+    CGFloat calendarContentMinX = (self.timeRowHeaderWidth + self.contentMargin.left + self.sectionMargin.left);
+    CGFloat calendarContentMinY = (self.dayColumnHeaderHeight + self.contentMargin.top + self.sectionMargin.top);
+    
+    for(NSInteger section = 0; section < self.collectionView.numberOfSections; section++) {
+        
+        CGFloat sectionMinX = (calendarContentMinX + (self.sectionWidth * section));
+        NSInteger earliestHour = [self earliestHourForSection:section];
+        
+        // Items
+        NSMutableArray *sectionItemAttributes = [NSMutableArray new];
+        
+        for (NSInteger item = 0; item < [self.collectionView numberOfItemsInSection:section]; item++) {
+            
+            NSIndexPath *itemIndexPath = [NSIndexPath indexPathForItem:item inSection:section];
+            UICollectionViewLayoutAttributes *itemAttributes = [self layoutAttributesForCellAtIndexPath:itemIndexPath withItemCache:self.itemAttributes];
+            [sectionItemAttributes addObject:itemAttributes];
+            
+            NSDateComponents *itemStartTime = [self startTimeForIndexPath:itemIndexPath];
+            NSDateComponents *itemEndTime = [self endTimeForIndexPath:itemIndexPath];
+            
+            CGFloat startHourY = ((itemStartTime.hour - earliestHour) * self.hourHeight);
+            CGFloat startMinuteY = (itemStartTime.minute * self.minuteHeight);
+            
+            CGFloat endHourY;
+            if (itemEndTime.day != itemStartTime.day) {
+                endHourY = (([[NSCalendar currentCalendar] maximumRangeOfUnit:NSHourCalendarUnit].length - earliestHour) * self.hourHeight) + (itemEndTime.hour * self.hourHeight);
+            } else {
+                endHourY = ((itemEndTime.hour - earliestHour) * self.hourHeight);
+            }
+            CGFloat endMinuteY = (itemEndTime.minute * self.minuteHeight);
+            
+            CGFloat itemMinY = nearbyintf(startHourY + startMinuteY + calendarContentMinY + self.cellMargin.top);
+            CGFloat itemMaxY = nearbyintf(endHourY + endMinuteY + calendarContentMinY - self.cellMargin.bottom);
+            CGFloat itemMinX = nearbyintf(sectionMinX + self.cellMargin.left);
+            CGFloat itemMaxX = nearbyintf(itemMinX + (self.sectionWidth - (self.cellMargin.left + self.cellMargin.right)));
+            
+            itemAttributes.frame = CGRectMake(itemMinX, itemMinY, (itemMaxX - itemMinX), (itemMaxY - itemMinY));
+            
+            itemAttributes.zIndex = MSCollectionMinCellZ;
+        }
+        [self adjustItemsForOverlap:sectionItemAttributes inSection:section sectionMinX:sectionMinX];
+    }
+}
+
 
 #pragma mark Dates
 

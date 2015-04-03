@@ -77,6 +77,11 @@ typedef NS_ENUM(NSUInteger, MSHeaderLayoutType) {
 // Since a "reloadData" on the UICollectionView doesn't call "prepareForCollectionViewUpdates:", this method must be called first to flush the internal caches
 - (void)invalidateLayoutCache;
 
+// Often we don't want to flush all internal caches and just want to update the cells we can call this method to reload the collection view content without reseting all the layout caches for the supplementary & decoration views
+// pass YES for shouldCleanItemAttributes if you want to clear out existing itemAttributes
+// Pass NO when you just want to update the position of the item attributes
+-(void) refreshItemLayoutAttributesAndClearItemAttributes:(BOOL)shouldCleanItemAttributes;
+
 @end
 
 @protocol MSCollectionViewDelegateCalendarLayout <UICollectionViewDelegate>
