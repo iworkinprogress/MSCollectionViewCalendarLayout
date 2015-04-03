@@ -78,9 +78,9 @@ typedef NS_ENUM(NSUInteger, MSHeaderLayoutType) {
 - (void)invalidateLayoutCache;
 
 // Often we don't want to flush all internal caches and just want to update the cells we can call this method to reload the collection view content without reseting all the layout caches for the supplementary & decoration views
-// pass YES for shouldCleanItemAttributes if you want to clear out existing itemAttributes
+// pass YES for shouldRemoveExistingItemAttributes if you want to clear out existing itemAttributes
 // Pass NO when you just want to update the position of the item attributes
--(void) refreshItemLayoutAttributesAndClearItemAttributes:(BOOL)shouldCleanItemAttributes;
+-(void) reloadDataAndUpdateItemAttributes:(BOOL)shouldRemoveExistingItemAttributes;
 
 @end
 

@@ -209,7 +209,7 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
         [self prepareSectionLayoutForSections:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, self.collectionView.numberOfSections)]];
         self.needsToPopulateAttributesForAllSections = NO;
     }
-
+    
     BOOL needsToPopulateAllAttribtues = YES;
     if (needsToPopulateAllAttribtues) {
         [self.allAttributes addObjectsFromArray:[self.dayColumnHeaderAttributes allValues]];
@@ -348,7 +348,7 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
         }
         
         if (needsToPopulateItemAttributes) {
-             [self populateHorizontalItemAttributes];
+            [self populateHorizontalItemAttributes];
         }
     }];
     
@@ -381,7 +381,7 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
     // Current Time Horizontal Gridline
     NSIndexPath *currentTimeHorizontalGridlineIndexPath = [NSIndexPath indexPathForRow:0 inSection:0];
     UICollectionViewLayoutAttributes *currentTimeHorizontalGridlineAttributes = [self layoutAttributesForDecorationViewAtIndexPath:currentTimeHorizontalGridlineIndexPath ofKind:MSCollectionElementKindCurrentTimeHorizontalGridline withItemCache:self.currentTimeHorizontalGridlineAttributes];
-
+    
     // Start these off hidden, and unhide them in the case of the current time indicator being within a specified section
     currentTimeIndicatorAttributes.frame = CGRectZero;
     currentTimeHorizontalGridlineAttributes.frame = CGRectZero;
@@ -428,7 +428,7 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
             
             // The y value of the current time
             CGFloat timeY = (calendarGridMinY + nearbyintf(((currentTimeDateComponents.hour - earliestHour) * self.hourHeight) + (currentTimeDateComponents.minute * self.minuteHeight)));
-
+            
             CGFloat currentTimeIndicatorMinY = (timeY - nearbyintf(self.currentTimeIndicatorSize.height / 2.0));
             CGFloat currentTimeIndicatorMinX = (self.timeRowHeaderWidth - self.currentTimeIndicatorSize.width);
             currentTimeIndicatorAttributes.frame = (CGRect){{currentTimeIndicatorMinX, currentTimeIndicatorMinY}, self.currentTimeIndicatorSize};
@@ -568,11 +568,11 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
                 
                 // It it hasn't yet been adjusted, perform adjustment
                 if (![adjustedAttributes containsObject:divisionAttributes]) {
-                
+                    
                     CGRect divisionAttributesFrame = divisionAttributes.frame;
                     divisionAttributesFrame.origin.x = (sectionMinX + self.cellMargin.left);
                     divisionAttributesFrame.size.width = itemWidth;
-                
+                    
                     // Horizontal Layout
                     NSInteger adjustments = 1;
                     for (UICollectionViewLayoutAttributes *dividedItemAttributes in dividedAttributes) {
@@ -581,7 +581,7 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
                             adjustments++;
                         }
                     }
-
+                    
                     // Stacking (lower items stack above higher items, since the title is at the top)
                     divisionAttributes.zIndex = sectionZ;
                     sectionZ ++;
@@ -652,7 +652,7 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
 }
 
 - (NSArray *)layoutAttributesForElementsInRect:(CGRect)rect
-{   
+{
     NSMutableIndexSet *visibleSections = [NSMutableIndexSet indexSet];
     [[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, self.collectionView.numberOfSections)] enumerateIndexesUsingBlock:^(NSUInteger section, BOOL *stop) {
         CGRect sectionRect = [self rectForSection:section];
@@ -802,7 +802,7 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
     [self.allAttributes removeAllObjects];
 }
 
--(void) refreshItemLayoutAttributesAndClearItemAttributes:(BOOL)shouldCleanItemAttributes
+-(void) reloadDataAndUpdateItemAttributes:(BOOL)shouldRemoveExistingItemAttributes
 {
     [self.cachedStartTimeDateComponents removeAllObjects];
     [self.cachedEndTimeDateComponents removeAllObjects];
@@ -810,14 +810,16 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
     // remove old item attributes
     [self.allAttributes removeObjectsInArray:[self.itemAttributes allValues]];
     
-    if(shouldCleanItemAttributes) {
+    if(shouldRemoveExistingItemAttributes) {
         [self.itemAttributes removeAllObjects];
     }
     
+    // need to force colleciton view to update it's numberOfSections:
+    [self.collectionView reloadData];
+    // update position of items
     [self populateHorizontalItemAttributes];
-    
-    // add iteMAttributes back to allAttributes
-    [self.allAttributes addObjectsFromArray:[self.itemAttributes allValues]];
+    // force layout of items
+    [self invalidateLayout];
 }
 
 -(void) populateHorizontalItemAttributes
