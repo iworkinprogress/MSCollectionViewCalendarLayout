@@ -339,13 +339,13 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
         dayColumnHeaderAttributes.frame = CGRectMake(sectionMinX, dayColumnHeaderMinY, self.sectionWidth, self.dayColumnHeaderHeight);
         dayColumnHeaderAttributes.zIndex = [self zIndexForElementKind:MSCollectionElementKindDayColumnHeader floating:dayColumnHeaderFloating];
         
-        if (needsToPopulateVerticalGridlineAttributes) {
-            // Vertical Gridline
-            NSIndexPath *verticalGridlineIndexPath = [NSIndexPath indexPathForItem:0 inSection:section];
-            UICollectionViewLayoutAttributes *horizontalGridlineAttributes = [self layoutAttributesForDecorationViewAtIndexPath:verticalGridlineIndexPath ofKind:MSCollectionElementKindVerticalGridline withItemCache:self.verticalGridlineAttributes];
-            CGFloat horizontalGridlineMinX = nearbyintf(sectionMinX - self.sectionMargin.left - (self.verticalGridlineWidth / 2.0));
-            horizontalGridlineAttributes.frame = CGRectMake(horizontalGridlineMinX, calendarGridMinY, self.verticalGridlineWidth, sectionHeight);
-        }
+        //        if (needsToPopulateVerticalGridlineAttributes) {
+        //            // Vertical Gridline
+        //            NSIndexPath *verticalGridlineIndexPath = [NSIndexPath indexPathForItem:0 inSection:section];
+        //            UICollectionViewLayoutAttributes *horizontalGridlineAttributes = [self layoutAttributesForDecorationViewAtIndexPath:verticalGridlineIndexPath ofKind:MSCollectionElementKindVerticalGridline withItemCache:self.verticalGridlineAttributes];
+        //            CGFloat horizontalGridlineMinX = nearbyintf(sectionMinX - self.sectionMargin.left - (self.verticalGridlineWidth / 2.0));
+        //            horizontalGridlineAttributes.frame = CGRectMake(horizontalGridlineMinX, calendarGridMinY, self.verticalGridlineWidth, sectionHeight);
+        //        }
     }];
     
     if (needsToPopulateItemAttributes) {
@@ -354,18 +354,20 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
     
     
     // Horizontal Gridlines
-    NSUInteger horizontalGridlineIndex = 0;
-    for (NSInteger hour = earliestHour; hour <= latestHour; hour++) {
-        NSIndexPath *horizontalGridlineIndexPath = [NSIndexPath indexPathForItem:horizontalGridlineIndex inSection:0];
-        UICollectionViewLayoutAttributes *horizontalGridlineAttributes = [self layoutAttributesForDecorationViewAtIndexPath:horizontalGridlineIndexPath ofKind:MSCollectionElementKindHorizontalGridline withItemCache:self.horizontalGridlineAttributes];
-        CGFloat horizontalGridlineMinY = nearbyintf(calendarContentMinY + (self.hourHeight * (hour - earliestHour))) - (self.horizontalGridlineHeight / 2.0);
-        
-        CGFloat horizontalGridlineXOffset = (calendarGridMinX + self.sectionMargin.left);
-        CGFloat horizontalGridlineMinX = fmaxf(horizontalGridlineXOffset, self.collectionView.contentOffset.x + horizontalGridlineXOffset);
-        CGFloat horizontalGridlineWidth = fminf(calendarGridWidth, self.collectionView.frame.size.width);
-        horizontalGridlineAttributes.frame = CGRectMake(horizontalGridlineMinX, horizontalGridlineMinY, horizontalGridlineWidth, self.horizontalGridlineHeight);
-        horizontalGridlineIndex++;
-    }
+    /*
+     NSUInteger horizontalGridlineIndex = 0;
+     for (NSInteger hour = earliestHour; hour <= latestHour; hour++) {
+     NSIndexPath *horizontalGridlineIndexPath = [NSIndexPath indexPathForItem:horizontalGridlineIndex inSection:0];
+     UICollectionViewLayoutAttributes *horizontalGridlineAttributes = [self layoutAttributesForDecorationViewAtIndexPath:horizontalGridlineIndexPath ofKind:MSCollectionElementKindHorizontalGridline withItemCache:self.horizontalGridlineAttributes];
+     CGFloat horizontalGridlineMinY = nearbyintf(calendarContentMinY + (self.hourHeight * (hour - earliestHour))) - (self.horizontalGridlineHeight / 2.0);
+     
+     CGFloat horizontalGridlineXOffset = (calendarGridMinX + self.sectionMargin.left);
+     CGFloat horizontalGridlineMinX = fmaxf(horizontalGridlineXOffset, self.collectionView.contentOffset.x + horizontalGridlineXOffset);
+     CGFloat horizontalGridlineWidth = fminf(calendarGridWidth, self.collectionView.frame.size.width);
+     horizontalGridlineAttributes.frame = CGRectMake(horizontalGridlineMinX, horizontalGridlineMinY, horizontalGridlineWidth, self.horizontalGridlineHeight);
+     horizontalGridlineIndex++;
+     }
+     */
 }
 
 - (void)prepareVerticalTileSectionLayoutForSections:(NSIndexSet *)sectionIndexes
@@ -834,42 +836,47 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
     
     for(NSInteger section = 0; section < self.collectionView.numberOfSections; section++) {
         
-        CGFloat sectionMinX = (calendarContentMinX + (self.sectionWidth * section));
-        NSInteger earliestHour = [self earliestHourForSection:section];
+        NSInteger numberOfItemsInSection = [self.collectionView numberOfItemsInSection:section];
         
-        // Items
-        NSMutableArray *sectionItemAttributes = [NSMutableArray new];
-        
-        for (NSInteger item = 0; item < [self.collectionView numberOfItemsInSection:section]; item++) {
+        if(numberOfItemsInSection) {
             
-            NSIndexPath *itemIndexPath = [NSIndexPath indexPathForItem:item inSection:section];
-            UICollectionViewLayoutAttributes *itemAttributes = [self layoutAttributesForCellAtIndexPath:itemIndexPath withItemCache:self.itemAttributes];
-            [sectionItemAttributes addObject:itemAttributes];
+            CGFloat sectionMinX = (calendarContentMinX + (self.sectionWidth * section));
+            NSInteger earliestHour = [self earliestHourForSection:section];
             
-            NSDateComponents *itemStartTime = [self startTimeForIndexPath:itemIndexPath];
-            NSDateComponents *itemEndTime = [self endTimeForIndexPath:itemIndexPath];
+            // Items
+            NSMutableArray *sectionItemAttributes = [NSMutableArray new];
             
-            CGFloat startHourY = ((itemStartTime.hour - earliestHour) * self.hourHeight);
-            CGFloat startMinuteY = (itemStartTime.minute * self.minuteHeight);
-            
-            CGFloat endHourY;
-            if (itemEndTime.day != itemStartTime.day) {
-                endHourY = (([[NSCalendar currentCalendar] maximumRangeOfUnit:NSHourCalendarUnit].length - earliestHour) * self.hourHeight) + (itemEndTime.hour * self.hourHeight);
-            } else {
-                endHourY = ((itemEndTime.hour - earliestHour) * self.hourHeight);
+            for (NSInteger item = 0; item < [self.collectionView numberOfItemsInSection:section]; item++) {
+                
+                NSIndexPath *itemIndexPath = [NSIndexPath indexPathForItem:item inSection:section];
+                UICollectionViewLayoutAttributes *itemAttributes = [self layoutAttributesForCellAtIndexPath:itemIndexPath withItemCache:self.itemAttributes];
+                [sectionItemAttributes addObject:itemAttributes];
+                
+                NSDateComponents *itemStartTime = [self startTimeForIndexPath:itemIndexPath];
+                NSDateComponents *itemEndTime = [self endTimeForIndexPath:itemIndexPath];
+                
+                CGFloat startHourY = ((itemStartTime.hour - earliestHour) * self.hourHeight);
+                CGFloat startMinuteY = (itemStartTime.minute * self.minuteHeight);
+                
+                CGFloat endHourY;
+                if (itemEndTime.day != itemStartTime.day) {
+                    endHourY = (([[NSCalendar currentCalendar] maximumRangeOfUnit:NSHourCalendarUnit].length - earliestHour) * self.hourHeight) + (itemEndTime.hour * self.hourHeight);
+                } else {
+                    endHourY = ((itemEndTime.hour - earliestHour) * self.hourHeight);
+                }
+                CGFloat endMinuteY = (itemEndTime.minute * self.minuteHeight);
+                
+                CGFloat itemMinY = nearbyintf(startHourY + startMinuteY + calendarContentMinY + self.cellMargin.top);
+                CGFloat itemMaxY = nearbyintf(endHourY + endMinuteY + calendarContentMinY - self.cellMargin.bottom);
+                CGFloat itemMinX = nearbyintf(sectionMinX + self.cellMargin.left);
+                CGFloat itemMaxX = nearbyintf(itemMinX + (self.sectionWidth - (self.cellMargin.left + self.cellMargin.right)));
+                
+                itemAttributes.frame = CGRectMake(itemMinX, itemMinY, (itemMaxX - itemMinX), (itemMaxY - itemMinY));
+                
+                itemAttributes.zIndex = MSCollectionMinCellZ;
             }
-            CGFloat endMinuteY = (itemEndTime.minute * self.minuteHeight);
-            
-            CGFloat itemMinY = nearbyintf(startHourY + startMinuteY + calendarContentMinY + self.cellMargin.top);
-            CGFloat itemMaxY = nearbyintf(endHourY + endMinuteY + calendarContentMinY - self.cellMargin.bottom);
-            CGFloat itemMinX = nearbyintf(sectionMinX + self.cellMargin.left);
-            CGFloat itemMaxX = nearbyintf(itemMinX + (self.sectionWidth - (self.cellMargin.left + self.cellMargin.right)));
-            
-            itemAttributes.frame = CGRectMake(itemMinX, itemMinY, (itemMaxX - itemMinX), (itemMaxY - itemMinY));
-            
-            itemAttributes.zIndex = MSCollectionMinCellZ;
+            [self adjustItemsForOverlap:sectionItemAttributes inSection:section sectionMinX:sectionMinX];
         }
-        [self adjustItemsForOverlap:sectionItemAttributes inSection:section sectionMinX:sectionMinX];
     }
 }
 
