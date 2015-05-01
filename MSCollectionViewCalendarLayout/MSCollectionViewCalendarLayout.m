@@ -567,6 +567,12 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
                         }
                     }
                     
+                    // don't allow cell to be past section width
+                    if(CGRectGetMaxX(divisionAttributesFrame) > sectionMinX + self.sectionWidth) {
+                        NSInteger delta = CGRectGetMaxX(divisionAttributesFrame) - (sectionMinX + self.sectionWidth);
+                        divisionAttributesFrame = CGRectMake(divisionAttributesFrame.origin.x, divisionAttributesFrame.origin.y, divisionAttributesFrame.size.width - delta, divisionAttributesFrame.size.height);
+                    }
+                    
                     // Stacking (lower items stack above higher items, since the title is at the top)
                     divisionAttributes.zIndex = sectionZ;
                     sectionZ ++;
@@ -854,7 +860,7 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
                 CGFloat itemMinX = nearbyintf(sectionMinX + self.cellMargin.left);
                 CGFloat itemMaxX = nearbyintf(itemMinX + (self.sectionWidth - (self.cellMargin.left + self.cellMargin.right)));
                 
-                itemAttributes.frame = CGRectMake(itemMinX, itemMinY, (itemMaxX - itemMinX), (itemMaxY - itemMinY));
+                itemAttributes.frame = CGRectMake(itemMinX, itemMinY, MIN((itemMaxX - itemMinX), self.sectionWidth- self.cellMargin.left- self.cellMargin.right), (itemMaxY - itemMinY));
                 
                 itemAttributes.zIndex = MSCollectionMinCellZ;
             }
