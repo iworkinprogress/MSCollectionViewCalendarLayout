@@ -259,7 +259,7 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
     
     // Time Row Header
     CGFloat timeRowHeaderMinX = fmaxf(self.collectionView.contentOffset.x, 0.0);
-    BOOL timeRowHeaderFloating = ((timeRowHeaderMinX != 0) || self.displayHeaderBackgroundAtOrigin);;
+    BOOL timeRowHeaderFloating = ((timeRowHeaderMinX != 0) || self.displayHeaderBackgroundAtOrigin);
     
     // Time Row Header Background
     NSIndexPath *timeRowHeaderBackgroundIndexPath = [NSIndexPath indexPathForRow:0 inSection:0];
@@ -331,43 +331,24 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
         timeRowHeaderIndex++;
     }
     
-    
-    [sectionIndexes enumerateIndexesUsingBlock:^(NSUInteger section, BOOL *stop) {
-        CGFloat sectionMinX = (calendarContentMinX + (sectionWidth * section));
-        // Day Column Header
-        UICollectionViewLayoutAttributes *dayColumnHeaderAttributes = [self layoutAttributesForSupplementaryViewAtIndexPath:[NSIndexPath indexPathForItem:0 inSection:section] ofKind:MSCollectionElementKindDayColumnHeader withItemCache:self.dayColumnHeaderAttributes];
-        dayColumnHeaderAttributes.frame = CGRectMake(sectionMinX, dayColumnHeaderMinY, self.sectionWidth, self.dayColumnHeaderHeight);
-        dayColumnHeaderAttributes.zIndex = [self zIndexForElementKind:MSCollectionElementKindDayColumnHeader floating:dayColumnHeaderFloating];
-        
-        //        if (needsToPopulateVerticalGridlineAttributes) {
-        //            // Vertical Gridline
-        //            NSIndexPath *verticalGridlineIndexPath = [NSIndexPath indexPathForItem:0 inSection:section];
-        //            UICollectionViewLayoutAttributes *horizontalGridlineAttributes = [self layoutAttributesForDecorationViewAtIndexPath:verticalGridlineIndexPath ofKind:MSCollectionElementKindVerticalGridline withItemCache:self.verticalGridlineAttributes];
-        //            CGFloat horizontalGridlineMinX = nearbyintf(sectionMinX - self.sectionMargin.left - (self.verticalGridlineWidth / 2.0));
-        //            horizontalGridlineAttributes.frame = CGRectMake(horizontalGridlineMinX, calendarGridMinY, self.verticalGridlineWidth, sectionHeight);
-        //        }
-    }];
-    
     if (needsToPopulateItemAttributes) {
+        // populate all the item attributes up front
         [self populateHorizontalItemAttributes];
+    } else {
+        // populate the headers on the fly
+        // first remove existing dah column header attributes
+        [self.allAttributes removeObjectsInArray:[self.dayColumnHeaderAttributes allValues]];
+        // populate new day column header attributes
+        [sectionIndexes enumerateIndexesUsingBlock:^(NSUInteger section, BOOL *stop) {
+            CGFloat sectionMinX = (calendarContentMinX + (sectionWidth * section));
+            // Day Column Header
+            UICollectionViewLayoutAttributes *dayColumnHeaderAttributes = [self layoutAttributesForSupplementaryViewAtIndexPath:[NSIndexPath indexPathForItem:0 inSection:section] ofKind:MSCollectionElementKindDayColumnHeader withItemCache:self.dayColumnHeaderAttributes];
+            dayColumnHeaderAttributes.frame = CGRectMake(sectionMinX, dayColumnHeaderMinY, self.sectionWidth, self.dayColumnHeaderHeight);
+            dayColumnHeaderAttributes.zIndex = [self zIndexForElementKind:MSCollectionElementKindDayColumnHeader floating:dayColumnHeaderFloating];
+        }];
+        // add day column attributes back to all attributes list
+        [self.allAttributes addObjectsFromArray:[self.dayColumnHeaderAttributes allValues]];
     }
-    
-    
-    // Horizontal Gridlines
-    /*
-     NSUInteger horizontalGridlineIndex = 0;
-     for (NSInteger hour = earliestHour; hour <= latestHour; hour++) {
-     NSIndexPath *horizontalGridlineIndexPath = [NSIndexPath indexPathForItem:horizontalGridlineIndex inSection:0];
-     UICollectionViewLayoutAttributes *horizontalGridlineAttributes = [self layoutAttributesForDecorationViewAtIndexPath:horizontalGridlineIndexPath ofKind:MSCollectionElementKindHorizontalGridline withItemCache:self.horizontalGridlineAttributes];
-     CGFloat horizontalGridlineMinY = nearbyintf(calendarContentMinY + (self.hourHeight * (hour - earliestHour))) - (self.horizontalGridlineHeight / 2.0);
-     
-     CGFloat horizontalGridlineXOffset = (calendarGridMinX + self.sectionMargin.left);
-     CGFloat horizontalGridlineMinX = fmaxf(horizontalGridlineXOffset, self.collectionView.contentOffset.x + horizontalGridlineXOffset);
-     CGFloat horizontalGridlineWidth = fminf(calendarGridWidth, self.collectionView.frame.size.width);
-     horizontalGridlineAttributes.frame = CGRectMake(horizontalGridlineMinX, horizontalGridlineMinY, horizontalGridlineWidth, self.horizontalGridlineHeight);
-     horizontalGridlineIndex++;
-     }
-     */
 }
 
 - (void)prepareVerticalTileSectionLayoutForSections:(NSIndexSet *)sectionIndexes
@@ -846,7 +827,7 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
             // Items
             NSMutableArray *sectionItemAttributes = [NSMutableArray new];
             
-            for (NSInteger item = 0; item < [self.collectionView numberOfItemsInSection:section]; item++) {
+            for (NSInteger item = 0; item < numberOfItemsInSection; item++) {
                 
                 NSIndexPath *itemIndexPath = [NSIndexPath indexPathForItem:item inSection:section];
                 UICollectionViewLayoutAttributes *itemAttributes = [self layoutAttributesForCellAtIndexPath:itemIndexPath withItemCache:self.itemAttributes];
