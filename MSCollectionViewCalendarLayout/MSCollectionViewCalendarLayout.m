@@ -334,7 +334,9 @@ NSUInteger const MSCollectionMinBackgroundZ = 0.0;
     if (needsToPopulateItemAttributes) {
         // populate all the item attributes up front
         [self populateHorizontalItemAttributes];
-    } else {
+    }
+    
+    if(!self.needsToPopulateAttributesForAllSections) {
         // populate the headers on the fly
         // first remove existing dah column header attributes
         [self.allAttributes removeObjectsInArray:[self.dayColumnHeaderAttributes allValues]];
